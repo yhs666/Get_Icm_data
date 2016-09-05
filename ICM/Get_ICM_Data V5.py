@@ -23,7 +23,7 @@ from binascii import b2a_hex, a2b_hex
 import MySQLdb
 
 ip ="172.31.4.119"
-password = "wasu.com"
+redispassword = "wasu.com"
 time_out = 60
 
 FILE=os.getcwd()
@@ -33,7 +33,7 @@ logging.basicConfig(level=logging.INFO,
                     filename = os.path.join(FILE,'Get_ICM_date_log.txt'),
                     filemode='w')
 try:
-    myredis = redis.Redis(host=ip,password=password,port = 6379)
+    myredis = redis.Redis(host=ip,password=redispassword,port = 6379)
     print "Connect Redis OK!"
     logging.info('Connect Redis OK!')
 
@@ -286,8 +286,8 @@ def get_icm_history(page_source):
     except Exception , e:
         print "get_icm_history",e
         return False 
-    
-def login(username,password):
+def login():    
+#def login(username,password):
     try:
         elem = driver.find_element_by_id("userNameInput")
         elem.clear()
@@ -300,13 +300,14 @@ def login(username,password):
         elem.click()
         return True 
     except Exception, e:
-        print "login: Not found login!"
+        print "login: Not found login!",e
         return False
     
 def icm_login(url,n= None):
     try:
         if n == 1:
-            login(username, password) 
+            #login(username, password)
+            login() 
             print "ICM_login:  OK!"
             return driver.current_window_handle
         else:
@@ -484,35 +485,40 @@ def insert_icm_history(icm):
 
 s='''
 21785530
-'''  
+''' 
+# 初始化ICM 
+def init_icm():
+    try:
+        global username
+        username = "cme\oe-yanghongsheng"
+        global password 
+        password = get_pwd()
+        
+        global driver
+        # define ENV
+        url="https://icm.ad.msft.net/imp/v3/incidents/search/basic"
+        iedriver = "C:\Users\yang.hongsheng\Desktop\IEDriverServer\IEDriverServer32.exe"
+        os.environ["webdriver.ie.driver"] = iedriver
+        driver = webdriver.Ie(iedriver) 
+        #login icm
+        driver.get(url)
+        #login_icm_handle = icm_login(url, n=1)
+        login()
+        login_icm_handle=driver.current_window_handle
+        driver.implicitly_wait(30)
+        cookie = driver.get_cookies()
+        driver.add_cookie(cookie[0])    
+    except Exception,e:
+        print "icm init err: ",str(e)
+        logging.info("icm init error! exit.") 
+        sys.exit()
 
-
-
-if __name__=='__main__':
-    username = "cme\oe-yanghongsheng"
-    password = get_pwd()
-    global driver
+def get_icm_data(tickets_list,get_type):
+    # default ALL, select detail or history
     #并发数
     bing = 10
-
-    # define ENV
-    url="https://icm.ad.msft.net/imp/v3/incidents/search/basic"
-    iedriver = "C:\Users\yang.hongsheng\Desktop\IEDriverServer\IEDriverServer32.exe"
-    os.environ["webdriver.ie.driver"] = iedriver
-    driver = webdriver.Ie(iedriver)
-    
-    #login icm
-    driver.get(url)
-    login_icm_handle = icm_login(url, n=1)
-    driver.implicitly_wait(30)
-    cookie = driver.get_cookies()
-    driver.add_cookie(cookie[0])
-    
-    #get icm list
-    q= s.split()
-    #q = ['20614528']
-    
     #get icm detail or history
+    q= tickets_list
     for i in range(0,len(q),bing):
         end=len(q)-i  
         if end > bing:
@@ -525,44 +531,109 @@ if __name__=='__main__':
         hands = driver.window_handles
         hands.remove(login_icm_handle)
         # default ALL, select details or history
-        deal_icm(hands)
-        driver.switch_to_window(login_icm_handle)
-
-  
-    #get icm date over.
+        deal_icm(hands,get_type)
+        driver.switch_to_window(login_icm_handle)    
+        #get icm date over.
     print "************************Get icm data  Done************************************"
     msg = ' Get ICM Date  Run over!!'
     print  time.ctime(),msg 
     logging.info(msg)
     
-    #insert icm details in  mysql
-    insert_issue,date_issue = insert_mysql(q)
-    print "************************Insert Detail  Done************************************" 
-    if not insert_issue:
-        print "Insert icm detail OK!!"
-    else:
-        print "Insert icm detail  issue tickets:",insert_issue," data have issue tickets: ",date_issue
+    if get_type =="ALL" or get_type =="detail":
+        #insert icm details in  mysql
+        insert_issue,date_issue = insert_mysql(q)
+        print "************************Insert Detail  Done************************************" 
+        if not insert_issue:
+            print "Insert icm detail OK!!"
+        else:
+            print "Insert icm detail  issue tickets:", insert_issue," data have issue tickets: ",date_issue
+        
+        msg = "Insert icm detail issue tickets:" + " ".join(insert_issue) + " data have issue tickets: " + " ".join(date_issue)
+        logging.info(msg)
+        
+    if get_type =="ALL" or get_type =="history":
+        #Insert icm history
+        history_issue=insert_icm_history(q)
+        print "************************Insert history  Done************************************"
+        if not history_issue:
+            print "Insert icm history OK!!"
+        else:
+            print "Insert history issue tickets:",history_issue
+        
+        msg = "Insert history issue tickets:" + " ".join(history_issue) 
+        logging.info(msg)
     
-    msg = "Insert icm detail issue tickets:" + " ".join(insert_issue) + " data have issue tickets: " + " ".join(date_issue)
-    logging.info(msg)
+def run_temp_list():
+    # get icm month report
+    while 1:
+        key = myredis.lpop("temp_list")
+        print "run temp_list key: ", key
+        if key:
+            key2= key + ":status"
+            if myredis.get(key2) =="submit":
+                q = json.loads(myredis.get(key))
+                msg = "run temp_list: key: %s  tickets: %s " % (key," ".join(q))
+                print msg
+                get_icm_data(q,"detail")
+                myredis.set(key2,"done")
+                logging.info(msg)
+            else:
+                msg = "run temp_list had done.: key: %s  tickets: %s " % (key," ".join(q))
+                print msg
+                logging.info(msg)
+                continue
+        else:
+            break
     
-    #Insert icm history
-    history_issue=insert_icm_history(q)
-    print "************************Insert history  Done************************************"
+def new_icm_tickets():
+    #New icm tickets comming
+    while 1:
+        tickets = myredis.rpop("new_icm")
+        print tickets
+        if tickets :
+            myredis.sadd("active_icm",tickets)
+            print "Add redis set"
+        else:
+            break  
+        
+        ''' 
+        print myredis.smembers("active_icm")
+        
+        myredis.srem("active_icm","None")  #del value
+        
+        s = list(myredis.smembers("active_icm"))
+        s.sort()
+        print s
+        #tickets update
+        print json.loads(myredis.get("21900755:detail"))["updatetime"]
+        #2016-08-29 13:20:01
+        '''
+def active_icm_tickets():
+    q= list(myredis.smembers("active_icm"))
+    q.sort()
+    get_icm_data(q,"ALL")
+
+def close_temp_tickets():
+    q= list(myredis.smembers("close_temp"))
+    q.sort()
+    get_icm_data(q,"ALL")   
+
     
+if __name__=='__main__':
+    '''
+    # init icm
+    init_icm()
     
-    if not history_issue:
-        print "Insert icm history OK!!"
-    else:
-        print "Insert history issue tickets:",history_issue
-    
-    msg = "Insert history issue tickets:" + " ".join(history_issue) 
-    logging.info(msg)
+    #get user submit tickets data
+    run_temp_list()
+
     driver.quit()
     print "Done!!!!!!!!!"
     sys.exit()
-    
-    
-    #click history table
+    '''
+    new_icm_tickets()
+    active_icm_tickets()
+    close_temp_tickets()
+
     
     

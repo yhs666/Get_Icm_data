@@ -484,35 +484,35 @@ def insert_icm_history(icm):
 
 s='''
 21785530
-'''  
+''' 
+# 初始化ICM 
+def init_icm():
+    try:
+        username = "cme\oe-yanghongsheng"
+        password = get_pwd()
+        # define ENV
+        url="https://icm.ad.msft.net/imp/v3/incidents/search/basic"
+        iedriver = "C:\Users\yang.hongsheng\Desktop\IEDriverServer\IEDriverServer32.exe"
+        os.environ["webdriver.ie.driver"] = iedriver
+        driver = webdriver.Ie(iedriver)
+        
+        #login icm
+        driver.get(url)
+        login_icm_handle = icm_login(url, n=1)
+        driver.implicitly_wait(30)
+        cookie = driver.get_cookies()
+        driver.add_cookie(cookie[0])    
+    except Exception,e:
+        print "icm init err: ",str(e)
+        logging.info("icm init error! exit.") 
+        sys.exit()
 
-
-
-if __name__=='__main__':
-    username = "cme\oe-yanghongsheng"
-    password = get_pwd()
-    global driver
+def get_icm_data(tickets_list,get_type):
+    # default ALL, select detail or history
     #并发数
     bing = 10
-
-    # define ENV
-    url="https://icm.ad.msft.net/imp/v3/incidents/search/basic"
-    iedriver = "C:\Users\yang.hongsheng\Desktop\IEDriverServer\IEDriverServer32.exe"
-    os.environ["webdriver.ie.driver"] = iedriver
-    driver = webdriver.Ie(iedriver)
-    
-    #login icm
-    driver.get(url)
-    login_icm_handle = icm_login(url, n=1)
-    driver.implicitly_wait(30)
-    cookie = driver.get_cookies()
-    driver.add_cookie(cookie[0])
-    
-    #get icm list
-    q= s.split()
-    #q = ['20614528']
-    
     #get icm detail or history
+    q= tickets_list
     for i in range(0,len(q),bing):
         end=len(q)-i  
         if end > bing:
@@ -525,10 +525,57 @@ if __name__=='__main__':
         hands = driver.window_handles
         hands.remove(login_icm_handle)
         # default ALL, select details or history
-        deal_icm(hands)
-        driver.switch_to_window(login_icm_handle)
+        deal_icm(hands,get_type)
+        driver.switch_to_window(login_icm_handle)    
+    
+def run_temp_list():
+    
+    while 1:
+        key = myredis.lpop("temp_list")
+        print key
+        if key:
+            key2= key + ":status"
+            #if myredis.get(key2) =="submit":
+            if myredis.get(key2) !="done":
+                q = json.loads(myredis.get(key))
+                get_icm_data(q,"detail")
+                myredis.set(key2,"done")
+            else:
+                continue
+        else:
+            break
+    
+   
+if __name__=='__main__':
 
-  
+    global driver
+    # init icm
+    #init_icm()
+    try:
+        username = "cme\oe-yanghongsheng"
+        password = get_pwd()
+        # define ENV
+        url="https://icm.ad.msft.net/imp/v3/incidents/search/basic"
+        iedriver = "C:\Users\yang.hongsheng\Desktop\IEDriverServer\IEDriverServer32.exe"
+        os.environ["webdriver.ie.driver"] = iedriver
+        driver = webdriver.Ie(iedriver)
+        
+        #login icm
+        driver.get(url)
+        login_icm_handle = icm_login(url, n=1)
+        driver.implicitly_wait(30)
+        cookie = driver.get_cookies()
+        driver.add_cookie(cookie[0])    
+    except Exception,e:
+        print "icm init err: ",str(e)
+        logging.info("icm init error! exit.") 
+        sys.exit()
+    
+    #get user submit tickets data
+    while 1:
+        run_temp_list()
+        time.sleep(1)
+    '''
     #get icm date over.
     print "************************Get icm data  Done************************************"
     msg = ' Get ICM Date  Run over!!'
@@ -558,6 +605,7 @@ if __name__=='__main__':
     
     msg = "Insert history issue tickets:" + " ".join(history_issue) 
     logging.info(msg)
+    '''
     driver.quit()
     print "Done!!!!!!!!!"
     sys.exit()
