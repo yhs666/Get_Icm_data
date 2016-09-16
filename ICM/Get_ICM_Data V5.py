@@ -22,6 +22,11 @@ from Crypto.Cipher import AES
 from binascii import b2a_hex, a2b_hex
 import MySQLdb
 
+reload(sys)
+sys.setdefaultencoding('utf8')
+
+from datetime import datetime
+
 ip ="172.31.4.119"
 redispassword = "wasu.com"
 time_out = 60
@@ -91,7 +96,7 @@ redis_key=[
 
 
 DATETIME_FMT = '%Y-%m-%d %H:%M:%S'
-from datetime import datetime
+
 datetimenow=datetime.strftime(datetime.now(), DATETIME_FMT)
 
 def insert_mysql(q):
@@ -504,6 +509,7 @@ def init_icm():
         driver.get(url)
         #login_icm_handle = icm_login(url, n=1)
         login()
+        global login_icm_handle
         login_icm_handle=driver.current_window_handle
         driver.implicitly_wait(30)
         cookie = driver.get_cookies()
@@ -574,7 +580,8 @@ def run_temp_list():
                 q = json.loads(myredis.get(key))
                 msg = "run temp_list: key: %s  tickets: %s " % (key," ".join(q))
                 print msg
-                get_icm_data(q,"detail")
+                #get_icm_data(q,"detail")
+                get_icm_data(q,"ALL")
                 myredis.set(key2,"done")
                 logging.info(msg)
             else:
@@ -618,9 +625,34 @@ def close_temp_tickets():
     q.sort()
     get_icm_data(q,"ALL")   
 
+def date_computer(s,seconds_or_day):
+    #string like  ""2016-08-29 13:20:01""
+    #string ["second","day","hour","minute"]
+    starttime = datetime.strptime(s, "%Y-%m-%d %H:%M:%S")
+    endtime = datetime.now()
+    seconds =(endtime - starttime).seconds
+    days = (endtime - starttime).days
+
+    if seconds_or_day =="second":
+        return seconds
+    elif seconds_or_day =="day":
+        return days
+    elif seconds_or_day =="hour":
+        hours = days * 24 + seconds // 3600
+        return hours
+    elif seconds_or_day =="minute":
+        minutes =days * 24 * 60 +  seconds  // 60
+        return minutes
+    else:
+        return False
+
+def control_icm_tickets():
+    active = list(myredis.smembers("active_icm"))
+    close =list(myredis.smembers("close_temp"))
+    
     
 if __name__=='__main__':
-    '''
+
     # init icm
     init_icm()
     
@@ -635,5 +667,6 @@ if __name__=='__main__':
     active_icm_tickets()
     close_temp_tickets()
 
-    
+    print "run done."
+    '''
     

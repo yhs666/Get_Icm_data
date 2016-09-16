@@ -1,1 +1,38 @@
-Mon, 05 Sep 2016 11:06:38:Get_ICM_Data V4.py[line:38] INFO Connect Redis OK!
+Tue, 13 Sep 2016 14:33:36:Get_ICM_Data V6.py[line:43] INFO Connect Redis OK!
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:546] INFO  Get ICM Date  Run over!!
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:123] INFO 21767326  21767326 3 IoT Hub | IcM xxx | Sev 3 | Iot Hut has been suspended (SR_2016081947521) 190 Incident 1. Contacted ByDesign CSS-SQL 2016-08-19 14:04:16 2016-08-20 01:40:30 2016-08-20 01:40:44 Resolved  Windows Azure Operations Center - China CIE Azure IoT Hub - China Triage None specified Azure IoT Hub - China  Escalate to Iot Hub.-->Subscription has been disabled, it should be by design of the service suspend 2016-09-13 14:34:00
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:123] INFO 21768688  21768688 4 CIE | check sql db status failed (2016081847512) 210 Root Cause 4. Completed Investigation LSI CSS-SQL 2016-08-19 15:01:31 2016-08-20 00:55:12 2016-08-20 01:16:44 Resolved  Azure SQL DB - China Telemetry Azure SQL DB - China Availability None specified Windows Azure Operations Center - China  sql db is ok. it's should be aux issue.--> may be related to LSI 21715382-->Confirmed this was related to the LSI 2016-09-13 14:34:01
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:123] INFO 21774478  21774478 4 [Mooncake]| Redis Cache| cannot connect to redis 850 Incident 4. Completed Investigation Platform Change CSS-Developer 2016-08-19 19:21:58 2016-08-23 05:24:20 2016-08-23 08:10:59 Resolved  Redis Cache - China Triage Redis Cache - China Redis S3S4 REDIS Managed Cache Service Windows Azure Operations Center - China CRI,AzureCache Noticed that The redis deployment changed from 4d3934e9dd6c47f984b48b0339bdd741 to aa1554742ab948729d8c152ce07615ff.
+
+This issue was caused by a regression in the redis runtime which only happened on newly created caches that are inside of a VNET. In order to mitigate the issue, we had to roll back to an older version of our runtime, which required a re-deployment of the cache instance.
+
+This cache was the only cache that hit this issue before it was identified and rolled back. We have already fixed the issue and deployed the update to prevent this from happening again. 2016-09-13 14:34:02
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:123] INFO 21779153  21779153 4 MoonCake | WebSites | webapp cannot connect sql azure (SR_2016080245248) 360 Incident 4. Completed Investigation Network CSS-WebApp 2016-08-19 22:23:28 2016-08-23 08:38:28 2016-08-23 08:38:52 Resolved  Windows Azure Operations Center - China CIE App Service (Web Apps) - China Windows Azure Websites Servicing WebSites App Service (Web Apps) - China  escalated to SQL team-->Seems the issue cannot find the RCA 2016-09-13 14:34:03
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:558] INFO Insert icm detail issue tickets: data have issue tickets: 
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:469] INFO [u'21767326', u'2016-08-20 01:39:46', u'oe-JiangShiXun-china', 30, u'2016-09-13 14:34:06']
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:469] INFO [u'21767326', u'2016-08-19 15:49:49', u'oe-luowei-china', 80, u'2016-09-13 14:34:06']
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:469] INFO [u'21767326', u'2016-08-19 15:46:23', u'oe-lichuangcheng-china', 80, u'2016-09-13 14:34:06']
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:469] INFO [u'21768688', u'2016-09-02 16:02:46', u'oe-quanzhiyang-china', 20, u'2016-09-13 14:34:06']
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:469] INFO [u'21768688', u'2016-08-20 01:15:41', u'oe-JiangShiXun-china', 20, u'2016-09-13 14:34:06']
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:469] INFO [u'21768688', u'2016-08-19 19:28:28', u'oe-fanSongchen-china', 120, u'2016-09-13 14:34:06']
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:469] INFO [u'21768688', u'2016-08-19 15:51:05', u'oe-yanghongsheng-china', 35, u'2016-09-13 14:34:06']
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:469] INFO [u'21768688', u'2016-08-19 15:04:53', u'oe-yanghongsheng-china', 15, u'2016-09-13 14:34:06']
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:469] INFO [u'21774478', u'2016-08-23 08:10:38', u'oe-zhanglianhui-china', 70, u'2016-09-13 14:34:09']
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:469] INFO [u'21774478', u'2016-08-23 00:30:40', u'oe-fansongchen-china', 20, u'2016-09-13 14:34:09']
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:469] INFO [u'21774478', u'2016-08-22 12:18:52', u'oe-zhanglianhui-china', 300, u'2016-09-13 14:34:09']
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:469] INFO [u'21774478', u'2016-08-22 11:56:58', u'oe-yanghongsheng-china', -15, u'2016-09-13 14:34:09']
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:469] INFO [u'21774478', u'2016-08-22 08:58:36', u'oe-yanghongsheng-china', 15, u'2016-09-13 14:34:09']
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:469] INFO [u'21774478', u'2016-08-21 08:28:42', u'oe-yanghongsheng-china', 50, u'2016-09-13 14:34:09']
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:469] INFO [u'21774478', u'2016-08-20 16:33:21', u'oe-yuezhao-china', 30, u'2016-09-13 14:34:09']
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:469] INFO [u'21774478', u'2016-08-20 12:22:30', u'oe-lichuangcheng-china', 30, u'2016-09-13 14:34:09']
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:469] INFO [u'21774478', u'2016-08-19 21:00:53', u'oe-zhanglianhui-china', 300, u'2016-09-13 14:34:09']
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:469] INFO [u'21774478', u'2016-08-19 19:57:21', u'oe-zhanglianhui-china', 50, u'2016-09-13 14:34:09']
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:469] INFO [u'21779153', u'2016-08-23 08:38:20', u'oe-zhanglianhui-china', 20, u'2016-09-13 14:34:09']
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:469] INFO [u'21779153', u'2016-08-20 16:29:58', u'oe-yuezhao-china', 30, u'2016-09-13 14:34:09']
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:469] INFO [u'21779153', u'2016-08-20 12:22:22', u'oe-lichuangcheng-china', 30, u'2016-09-13 14:34:09']
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:469] INFO [u'21779153', u'2016-08-20 07:25:52', u'oe-guofei-china', 40, u'2016-09-13 14:34:09']
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:469] INFO [u'21779153', u'2016-08-20 02:52:12', u'oe-JiangShiXun-china', 40, u'2016-09-13 14:34:09']
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:469] INFO [u'21779153', u'2016-08-19 23:58:59', u'oe-fanSongchen-china', 60, u'2016-09-13 14:34:09']
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:469] INFO [u'21779153', u'2016-08-19 22:26:06', u'oe-fanSongchen-china', 140, u'2016-09-13 14:34:09']
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:570] INFO Insert history issue tickets:
+Tue, 13 Sep 2016 14:34:10:Get_ICM_Data V6.py[line:586] INFO run temp_list: key: 5040ed652aebd78ec0792afa87c9bedb  tickets: 21767326 21768688 21774478 21779153 
