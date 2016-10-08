@@ -21,6 +21,8 @@ import sys
 from Crypto.Cipher import AES
 from binascii import b2a_hex, a2b_hex
 import MySQLdb
+from Crypto.SelfTest.Hash.test_HMAC import hashlib_test_data
+import hashlib
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -513,7 +515,9 @@ def init_icm():
         login_icm_handle=driver.current_window_handle
         driver.implicitly_wait(30)
         cookie = driver.get_cookies()
-        driver.add_cookie(cookie[0])    
+        driver.add_cookie(cookie[0]) 
+        
+           
     except Exception,e:
         print "icm init err: ",str(e)
         logging.info("icm init error! exit.") 
@@ -681,8 +685,28 @@ def date_computer(s,seconds_or_day):
         return minutes
     else:
         return False
-
-
+def get_page_hash():
+    driver.switch_to_window(login_icm_handle)
+    m_page = hashlib.md5()
+    m_page.update(driver.page_source)
+    main_hash = m_page.hexdigest()
+    return main_hash
+def check_login():
+    try:
+        driver.implicitly_wait(3)
+        WebDriverWait(driver, 3).until(lambda x : x.find_element_by_id("submitButton"))
+        #driver.find_element_by_id("submitButton")
+        #driver.switch_to_window(login_icm_handle)
+        driver.implicitly_wait(30)
+        login()
+        msg = "Check icm login Need re login!"
+        print msg
+        logging.info(msg) 
+    except Exception,e:
+        driver.implicitly_wait(30)
+        msg = "Check icm login didn't Need re login!"
+        print msg
+        logging.info(msg) 
     
     
 if __name__=='__main__':
@@ -695,18 +719,17 @@ if __name__=='__main__':
     #get user submit tickets data
     n=0
     while 1:
+        n=n+1
+        if n >= 10:
+            n=0
+            check_login()
+            
         new_icm_tickets(team)
         active_icm_tickets(team)
         close_temp_tickets(team)
         run_temp_list()
         time.sleep(1)
-        n=n+1
-        if n >= 7200:
-            driver.switch_to_window(login_icm_handle)
-            driver.refresh()
-            driver.implicitly_wait(5)
-            
-            n=0
+
 
     driver.quit()
     print "Done!!!!!!!!!"
